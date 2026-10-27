@@ -1,0 +1,43 @@
+{
+  "_comment": "Composants tiers figés (URL, version, empreinte). Mettre à jour = changer ce fichier, re-vérifier, re-tester.",
+  "components": {
+    "erupe": {
+      "role": "serveur de jeu MHF (Go, MIT) — dépôt archivé le 2026-07-18, dernière version",
+      "repo": "https://github.com/Mezeporta/Erupe",
+      "tag": "v9.4.1",
+      "commit": "9604df995f981d2aac7c27bd6b21e58ddd0a2732",
+      "url": "https://github.com/Mezeporta/Erupe/releases/download/v9.4.1/erupe-Windows-amd64.zip",
+      "sha256": "7fdaa485e753801cdec191fc3bb588c72366cfb2b2d12c2d1f14ff820c9d9d28",
+      "license": "MIT",
+      "note": "binaire de référence ; une version patchée (encodage du français) sera compilée depuis les sources, voir Documentation/01-Audit.md"
+    },
+    "mhf-iel": {
+      "role": "lancement direct du client sans mhf.exe / mhl.dll / Internet Explorer (Rust nightly, i686)",
+      "repo": "https://github.com/rockisch/mhf-iel",
+      "commit": "24861f4a22c65eb2c30ac2ec6051c0a02c1af424",
+      "license": "MIT"
+    },
+    "translation-fr": {
+      "role": "traductions françaises du client (MHFrontier-Translation, Mogapédia) ; données GPL-3.0, jamais intégrées à l'exécutable, décompressées dans Localization/translations-fr.json",
+      "repo": "https://github.com/Mogapedia/MHFrontier-Translation",
+      "tag": "v0.3.0",
+      "commit": "3b20de8af75cb3e9cd941a2d0e101930a0672c58",
+      "url": "https://github.com/Mogapedia/MHFrontier-Translation/releases/download/v0.3.0/translations-fr.json.gz",
+      "sha256": "5748d5a128112a7f070a2413586f85cae5ab8cba106fb71881a9552c0b3d88a9",
+      "license": "GPL-3.0"
+    },
+    "mhf-outpost": {
+      "role": "code source repris (MIT) dans Launcher/src/frontier_text : ECD, JKR, tables de pointeurs, application des traductions",
+      "repo": "https://github.com/Mogapedia/mhf-outpost",
+      "commit": "f7b6cff9c23c1be111301a81de81ed57b0537f52",
+      "license": "MIT"
+    },
+    "postgresql": {
+      "role": "base de données portable (binaires zip EDB, sans installateur ; seuls bin, lib et share sont gardés)",
+      "version": "17.11-5",
+      "url": "https://get.enterprisedb.com/postgresql/postgresql-17.11-5-windows-x64-binaries.zip",
+      "sha256": "80379b2c04d51c30225532e0ae04509899141e9957ed096fe749d7fd9df8f82f",
+      "license": "PostgreSQL"
+    }
+  }
+}

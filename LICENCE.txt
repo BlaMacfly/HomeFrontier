@@ -1,0 +1,268 @@
+﻿CONTRAT DE LICENCE D'UTILISATION
+HOMEFRONTIER
+Version 1.0 du 28 octobre 2026 (adaptée du contrat de HomeCraft Edition Vanilla)
+
+IMPORTANT : LISEZ ATTENTIVEMENT CE CONTRAT AVANT D'UTILISER LE LOGICIEL.
+EN INSTALLANT, EN COPIANT SUR VOTRE DISQUE OU EN UTILISANT LE LOGICIEL, VOUS
+ACCEPTEZ D'ÊTRE LIÉ PAR LES TERMES DU PRÉSENT CONTRAT. SI VOUS NE LES ACCEPTEZ
+PAS, N'INSTALLEZ PAS ET N'UTILISEZ PAS LE LOGICIEL.
+
+
+ARTICLE 1 — PARTIES ET DÉFINITIONS
+
+1.1 Le « Titulaire » désigne BlaMacfly, auteur et titulaire des droits sur le
+Logiciel.
+[À compléter avant toute diffusion : nom et prénom ou dénomination, adresse,
+adresse électronique de contact.]
+
+1.2 L'« Utilisateur » désigne toute personne physique qui installe ou utilise le
+Logiciel.
+
+1.3 Le « Logiciel » désigne HomeFrontier, c'est-à-dire l'ensemble des éléments
+créés par le Titulaire, et notamment :
+  a) le programme « HomeFrontier.exe » (le launcher), sous forme exécutable, et
+     son code source lorsqu'il est fourni (dossier Launcher), à l'exception du
+     code repris de tiers mentionné à l'article 1.4 ;
+  b) les scripts de construction et d'exploitation (dossiers Build, Tools) ;
+  c) la documentation et les fichiers LISEZMOI / README ;
+  d) les traductions françaises créées par le Titulaire (dossier Localization,
+     dont les traductions des textes de quêtes) ;
+  e) les éléments graphiques et l'identité visuelle : le nom « HomeFrontier »,
+     le logo et l'icône ;
+  f) la structure, l'organisation et l'assemblage du dossier livré.
+
+1.4 Les « Composants Tiers » désignent les logiciels, bibliothèques, polices,
+données et extraits de code d'autres auteurs utilisés par le Logiciel. Ils ne
+font PAS partie du Logiciel au sens du présent contrat et restent régis
+exclusivement par leurs licences propres. Il s'agit notamment :
+  - du serveur de jeu Erupe (licence MIT) ;
+  - du programme de lancement mhf-iel (licence MIT) ;
+  - du code repris de mhf-outpost dans Launcher/src/frontier_text (licence
+    MIT, reproduite dans LICENSE-mhf-outpost.txt) ;
+  - des traductions MHFrontier-Translation (licence GNU GPL version 3),
+    téléchargées séparément et jamais intégrées au launcher ;
+  - du serveur de base de données PostgreSQL (licence PostgreSQL) ;
+  - de la police Cinzel (SIL Open Font License 1.1) ;
+  - des bibliothèques Rust utilisées par le launcher (licences MIT, Apache 2.0,
+    zlib, BSD et assimilées).
+Rien dans le présent contrat ne restreint les droits que ces licences
+accordent sur les Composants Tiers.
+
+1.5 Les « Contenus Capcom » désignent le jeu Monster Hunter Frontier, son
+client (version ZZ), ses fichiers de données, les fichiers de quêtes, de
+scénarios et d'événements utilisés par le serveur, et tout fichier qui en
+dérive. Ils ne sont NI fournis NI concédés par le présent contrat (voir
+article 6). Les textes d'origine reproduits dans la colonne « source » des
+fichiers de traduction restent la propriété de Capcom Co., Ltd.
+
+
+ARTICLE 2 — PROPRIÉTÉ
+
+2.1 Le Logiciel est protégé par le Code de la propriété intellectuelle français
+et par les conventions internationales relatives au droit d'auteur. Le Logiciel
+n'est pas vendu : il est concédé en licence. Le Titulaire conserve l'intégralité
+des droits de propriété intellectuelle sur le Logiciel, y compris sur toute
+copie, quelle qu'en soit la forme.
+
+2.2 Le nom « HomeFrontier », le logo et l'identité visuelle sont la propriété
+du Titulaire. Aucun droit d'utilisation sur ces signes n'est accordé, en
+dehors de leur affichage par le Logiciel lui-même.
+
+2.3 Tous les droits qui ne sont pas expressément accordés à l'Utilisateur par le
+présent contrat sont réservés au Titulaire.
+
+
+ARTICLE 3 — DROITS ACCORDÉS À L'UTILISATEUR
+
+Sous réserve du respect du présent contrat, le Titulaire accorde à
+l'Utilisateur un droit personnel, non exclusif, non transférable, non
+cessible et révocable :
+
+3.1 d'installer et d'utiliser le Logiciel, à des fins strictement personnelles
+et non commerciales, sur un ou plusieurs ordinateurs dont l'Utilisateur a
+l'usage ;
+
+3.2 de lire et de consulter la documentation, les scripts et le code source du
+Logiciel lorsqu'ils sont fournis, à des fins d'information, de vérification et
+de compréhension de son fonctionnement ;
+
+3.3 de réaliser une copie de sauvegarde du dossier livré, pour ses seuls
+besoins, conformément à l'article L.122-6-1 du Code de la propriété
+intellectuelle, cette copie restant soumise au présent contrat ;
+
+3.4 d'utiliser les fonctions du Logiciel et de conserver les fichiers qu'elles
+produisent (dossier UserData) : ces fichiers, qui contiennent les données de
+jeu de l'Utilisateur, lui appartiennent ;
+
+3.5 de consulter le code source, les scripts et la documentation du Logiciel
+publiés par le Titulaire sur la plateforme GitHub, et d'en réaliser une copie
+« fork » sur cette même plateforme, dans la seule mesure où les conditions
+d'utilisation de GitHub l'imposent (droit de consultation et de fork des
+dépôts publics). Cette publication ne confère aucun autre droit : les
+restrictions de l'article 4 s'appliquent intégralement au contenu ainsi
+consulté ou copié, et notamment l'interdiction de le redistribuer en dehors
+de GitHub, de le modifier, de le réutiliser ou de distribuer des versions
+compilées ;
+
+3.6 d'utiliser le mode « réseau local » ou « serveur distant » du Logiciel
+pour jouer avec des personnes de son entourage, à titre privé, gratuit et non
+public.
+
+
+ARTICLE 4 — RESTRICTIONS
+
+Sauf autorisation écrite et préalable du Titulaire, et sauf dans la mesure où
+la loi applicable l'interdit expressément, l'Utilisateur s'interdit de :
+
+4.1 reproduire le Logiciel, en tout ou partie, par quelque moyen et sous
+quelque forme que ce soit, au-delà de la copie de sauvegarde prévue à
+l'article 3.3 ;
+
+4.2 distribuer, diffuser, publier, mettre en ligne, partager, mettre à
+disposition du public ou de tiers, vendre, louer, prêter, céder, sous-licencier
+ou transférer le Logiciel ou une partie du Logiciel, sur quelque support ou par
+quelque réseau que ce soit, à titre gratuit ou onéreux ;
+
+4.3 modifier, adapter, traduire, arranger, transformer le Logiciel ou créer une
+œuvre dérivée à partir du Logiciel ou de l'un de ses éléments (code, scripts,
+documentation, traductions, éléments graphiques) ;
+
+4.4 réutiliser tout ou partie du code source, des scripts, de la documentation
+ou des traductions du Logiciel dans un autre logiciel, un autre projet, un
+autre serveur ou une autre publication, même à titre d'extrait ;
+
+4.5 décompiler, désassembler ou procéder à l'ingénierie inverse de
+l'exécutable du Logiciel, hormis dans les cas et conditions strictement prévus
+par l'article L.122-6-1 IV du Code de la propriété intellectuelle
+(interopérabilité) ;
+
+4.6 contourner, retirer, altérer ou rendre illisibles les mentions de
+propriété, les mentions de licence, les avis de droit d'auteur ou les marques
+figurant dans le Logiciel ou sa documentation ;
+
+4.7 utiliser le Logiciel pour exploiter un serveur public, ouvert à des
+inconnus, ou payant, l'article 3.6 restant réservé ;
+
+4.8 utiliser le Logiciel, son nom, son logo ou son identité visuelle dans un
+but commercial, promotionnel ou publicitaire, ou d'une manière laissant croire
+à une affiliation, un parrainage ou une approbation du Titulaire ;
+
+4.9 utiliser le Logiciel d'une manière contraire aux lois en vigueur ou aux
+droits de tiers, et notamment aux droits de Capcom Co., Ltd. sur les Contenus
+Capcom.
+
+
+ARTICLE 5 — ÉLÉMENTS FOURNIS PAR L'UTILISATEUR ET DONNÉES DE JEU
+
+5.1 Le Logiciel fonctionne avec un client de jeu et des fichiers de quêtes que
+l'Utilisateur fournit lui-même et dont il est seul responsable (voir
+article 6). Les fichiers modifiés par le Logiciel (traduction) le sont sur
+l'ordinateur de l'Utilisateur, à partir de ses propres fichiers, dont les
+originaux sont sauvegardés ; ils ne sont jamais fournis par le Titulaire.
+
+5.2 Les personnages, comptes de jeu, réglages et sauvegardes créés par
+l'Utilisateur (dossier UserData) sont la propriété de l'Utilisateur. Le
+Titulaire n'y a aucun accès : le Logiciel ne collecte ni ne transmet aucune
+donnée au Titulaire. En mode local, il ne communique qu'avec l'ordinateur de
+l'Utilisateur ; en mode « serveur distant », uniquement avec le serveur choisi
+par l'Utilisateur. Le script de construction télécharge les Composants Tiers
+depuis les adresses indiquées dans Build/manifest.json.
+
+5.3 L'Utilisateur est seul responsable de la conservation de ses données de
+jeu.
+
+
+ARTICLE 6 — CONTENUS CAPCOM ET ABSENCE D'AFFILIATION
+
+6.1 Monster Hunter, Monster Hunter Frontier, Capcom et les noms, lieux,
+personnages, images et éléments du jeu sont des marques et des œuvres de
+Capcom Co., Ltd. Le Titulaire n'a aucun lien avec Capcom Co., Ltd. Le Logiciel
+n'est ni édité, ni approuvé, ni soutenu par Capcom Co., Ltd.
+
+6.2 Le Logiciel ne contient, ne fournit et ne télécharge aucun Contenu Capcom.
+L'Utilisateur doit disposer de son propre client Monster Hunter Frontier ZZ et
+de ses propres fichiers de quêtes, et il lui appartient de s'assurer qu'il est
+en droit de les détenir et de les utiliser. Le Titulaire décline toute
+responsabilité à cet égard.
+
+
+ARTICLE 7 — ABSENCE DE GARANTIE
+
+7.1 Le Logiciel est fourni « EN L'ÉTAT », sans aucune garantie d'aucune sorte,
+expresse ou implicite, dans toute la mesure permise par la loi applicable. Le
+Titulaire ne garantit notamment pas que le Logiciel sera exempt d'erreurs ou
+d'interruptions, qu'il fonctionnera sur toute configuration matérielle ou
+logicielle, qu'il sera compatible avec tout client, pilote, antivirus ou
+système d'exploitation, ni que les Composants Tiers seront exempts de défauts.
+
+7.2 Le Logiciel est une création personnelle fournie à titre gracieux. Il
+n'est accompagné d'aucune obligation de support, de maintenance, de mise à jour
+ou de correction.
+
+7.3 Si l'Utilisateur a la qualité de consommateur, les garanties légales
+d'ordre public qui lui bénéficient demeurent applicables dans les limites
+prévues par la loi.
+
+
+ARTICLE 8 — LIMITATION DE RESPONSABILITÉ
+
+8.1 Dans toute la mesure permise par la loi applicable, le Titulaire ne pourra
+être tenu responsable d'aucun dommage direct ou indirect, matériel ou
+immatériel, résultant de l'utilisation ou de l'impossibilité d'utiliser le
+Logiciel, et notamment : perte de données de jeu, de personnages ou de
+sauvegardes ; perte ou altération de fichiers du client ou du serveur ;
+dysfonctionnement de l'ordinateur ; incompatibilité avec d'autres logiciels ;
+conséquences d'une utilisation non conforme au présent contrat ; conséquences
+de l'utilisation par l'Utilisateur d'un client ou de contenus dont il ne
+détiendrait pas légitimement les droits.
+
+8.2 Rien dans le présent contrat n'exclut ni ne limite la responsabilité du
+Titulaire dans les cas où la loi ne permet pas de l'exclure ou de la limiter.
+
+
+ARTICLE 9 — DURÉE ET RÉSILIATION
+
+9.1 Le présent contrat entre en vigueur à la première installation ou
+utilisation du Logiciel et demeure en vigueur jusqu'à sa résiliation.
+
+9.2 Le contrat est résilié de plein droit, sans formalité ni préavis, en cas
+de manquement de l'Utilisateur à l'une quelconque de ses obligations. En cas de
+résiliation, l'Utilisateur doit cesser toute utilisation du Logiciel et
+détruire toutes les copies en sa possession. Les articles 2, 4, 6, 7, 8, 9.2
+et 10 survivent à la résiliation.
+
+9.3 L'Utilisateur peut mettre fin au contrat à tout moment en détruisant toutes
+les copies du Logiciel en sa possession. Les données de jeu de l'Utilisateur
+(dossier UserData) lui restent acquises.
+
+9.4 Toute reproduction, diffusion ou utilisation du Logiciel en violation du
+présent contrat constitue une contrefaçon au sens des articles L.335-2 et
+suivants du Code de la propriété intellectuelle.
+
+
+ARTICLE 10 — DISPOSITIONS GÉNÉRALES
+
+10.1 Intégralité. Le présent contrat constitue l'intégralité de l'accord entre
+le Titulaire et l'Utilisateur concernant le Logiciel. Il ne régit pas les
+Composants Tiers (article 1.4) ni les Contenus Capcom (article 1.5).
+
+10.2 Nullité partielle. Si l'une des stipulations du présent contrat est
+déclarée nulle ou inapplicable, les autres stipulations conservent leur pleine
+validité.
+
+10.3 Modifications. Le Titulaire peut publier une nouvelle version du présent
+contrat avec une nouvelle version du Logiciel ; elle ne s'applique qu'à cette
+nouvelle version.
+
+10.4 Droit applicable et juridiction. Le présent contrat est régi par le droit
+français. Tout litige sera soumis aux tribunaux français compétents. Si
+l'Utilisateur a la qualité de consommateur, les règles de compétence
+protectrices d'ordre public qui lui bénéficient demeurent applicables.
+
+10.5 Contact. Toute demande d'autorisation ou question relative au présent
+contrat est à adresser au Titulaire aux coordonnées indiquées à l'article 1.1.
+
+
+© 2026 BlaMacfly. Tous droits réservés.
+HomeFrontier est une création indépendante, sans lien avec Capcom Co., Ltd.
+Monster Hunter est une marque de Capcom Co., Ltd.

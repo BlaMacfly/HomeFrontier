@@ -1,0 +1,4 @@
+# Bibliothèque C (CRT) liée statiquement : l'exécutable ne dépend d'aucun « Visual C++ Redistributable »
+# installé dans Windows (VCRUNTIME140.dll absent d'un Windows neuf).
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]

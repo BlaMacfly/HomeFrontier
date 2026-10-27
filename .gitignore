@@ -1,0 +1,31 @@
+# ---- Jamais versionné : contenu Capcom et données personnelles
+/Client/
+/Server/bin/
+/UserData/
+/Logs/
+/Localization/extract/
+
+# ---- Composants tiers téléchargés par Build/Get-Components.ps1 (manifest.json fait foi)
+/Build/downloads/
+/Server/erupe/
+/Server/pgsql/
+/Tools/mhf-iel/
+/Build/mhf-iel-src/
+/Build/erupe-src/
+
+# ---- Fond d'écran : reprend le logo officiel de Capcom, jamais publié (le launcher s'en passe, voir build.rs)
+/Launcher/assets/fond.jpg
+
+# ---- Généré
+/Server/Config/
+/Build/package/
+/Build/tmp/
+/Build/files-manifest.json
+/Launcher/target/
+/HomeFrontier.exe
+*.orig
+
+# ---- Divers
+Thumbs.db
+desktop.ini
+*.log
