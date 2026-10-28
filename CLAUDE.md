@@ -61,6 +61,15 @@ UserData/, Logs/, et le launcher copié en `HomeFrontier.exe`).
   d'Erupe). Environ 3 min 20 pour tout ; redémarrer le serveur ensuite (cache de quêtes d'Erupe).
   Vocabulaire : 狩猟 « Chasser », 討伐 « Tuer », 捕獲 « Capturer », 亜種 nom français de sous-espèce,
   変種 « variante », 報酬金ゼロ « Prime à zéro ».
+- Traduction automatique des quêtes **hors ligne, sans Claude** (demande utilisateur du 2026-10-28) :
+  `Tools/traduire-quetes/` (Python 3.12 installé par winget pour l'utilisateur, `.venv` privé, CTranslate2 +
+  NLLB-200 distilled 600M converti en int8, CC-BY-NC). `Installer.cmd`, puis `Traduire.cmd -Racine <racine>` →
+  `<racine>/Localization/quetes-fr-auto.tsv`, appliqué par le launcher **après** `quetes-fr.tsv` (manuel
+  prioritaire). Glossaire `glossaire.tsv` (noms, surnoms, armes), catégories de titres `etiquettes.tsv`, règles
+  d'objectifs et de titres, garde-fou contre les phrases inventées par NLLB sur les textes courts (repli sur le
+  japonais), recoupage à 26 caractères, rapport
+  `quetes-fr-auto-rapport.tsv`. L'inventaire lit les originaux sauvegardés (jamais les quêtes traduites).
+  Le script empêche la veille de Windows pendant qu'il tourne (`SetThreadExecutionState`).
 - Fond d'écran : `Launcher/assets/fond.jpg` n'est **pas** versionné (logo Capcom, décision utilisateur du
   2026-10-28) ; `build.rs` l'intègre s'il est présent (`cfg(has_fond)`), sinon fond sombre. Après l'avoir
   remis en place, `touch` le fichier pour que cargo recompile.

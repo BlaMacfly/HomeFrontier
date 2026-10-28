@@ -165,6 +165,25 @@ pub fn restore_dir(quest_dir: &Path, backup_dir: &Path) -> Result<usize, String>
     Ok(n)
 }
 
+/// Outil de traduction : les 8 textes des quêtes `from..=to` (variante `d0`), en TSV (quête, champ, texte).
+/// Lit les originaux sauvegardés (`backup_dir`) quand ils existent, pour ne pas relire une quête déjà traduite.
+pub fn dump_range(quest_dir: &Path, backup_dir: &Path, from: u32, to: u32, out: &Path) -> Result<usize, String> {
+    let escape = |s: &str| s.replace('\\', "\\\\").replace('\t', "\\t").replace('\r', "\\r").replace('\n', "\\n");
+    let mut text = String::from("quete\tchamp\tsource\n");
+    let mut n = 0;
+    for id in from..=to {
+        let name = format!("{id:05}d0.bin");
+        let path = if backup_dir.join(&name).is_file() { backup_dir.join(&name) } else { quest_dir.join(&name) };
+        let Some(t) = load(&path).ok().and_then(|d| texts(&d)) else { continue };
+        n += 1;
+        for (i, s) in t.iter().enumerate() {
+            text.push_str(&format!("{id:05}\t{}\t{}\n", FIELD_NAMES[i], escape(s)));
+        }
+    }
+    std::fs::write(out, text).map_err(|e| e.to_string())?;
+    Ok(n)
+}
+
 /// Inventaire des textes de toutes les quêtes : texte → (nombre d'occurrences, champs où il apparaît).
 pub struct Inventory {
     pub files: usize,
@@ -172,13 +191,19 @@ pub struct Inventory {
     pub texts: HashMap<String, (usize, u8)>,
 }
 
-pub fn inventory(quest_dir: &Path) -> Result<Inventory, String> {
+/// Les originaux sauvegardés (`backup_dir`) sont lus en priorité : l'inventaire reste en japonais même après une
+/// traduction.
+pub fn inventory(quest_dir: &Path, backup_dir: &Path) -> Result<Inventory, String> {
     let mut inv = Inventory { files: 0, unreadable: Vec::new(), texts: HashMap::new() };
     let entries = std::fs::read_dir(quest_dir).map_err(|e| format!("{}: {e}", quest_dir.display()))?;
     for entry in entries.flatten() {
-        let path = entry.path();
+        let mut path = entry.path();
         if path.extension().and_then(|e| e.to_str()) != Some("bin") {
             continue;
+        }
+        let backup = backup_dir.join(entry.file_name());
+        if backup.is_file() {
+            path = backup;
         }
         inv.files += 1;
         let parsed = load(&path).ok().and_then(|d| texts(&d));

@@ -55,6 +55,17 @@ fn main() -> eframe::Result {
             (Some("untranslate"), _, _) => {
                 let _ = tx.send(orchestrator::Command::RestoreOriginalText);
             }
+            // Outil : --do quest-dump <tsv> <première quête> <dernière quête> (sans démarrer le serveur).
+            (Some("quest-dump"), Some(out), Some(from)) => {
+                let to = args.get(i + 4).and_then(|v| v.parse().ok()).unwrap_or(0);
+                let dir = layout.quest_bin().join("quests");
+                let backup = frontier_text::quest_backup_dir(&layout);
+                match frontier_text::quest::dump_range(&dir, &backup, from.parse().unwrap_or(0), to, std::path::Path::new(out)) {
+                    Ok(n) => println!("{n} quête(s) écrite(s) dans {out}"),
+                    Err(e) => eprintln!("ERREUR : {e}"),
+                }
+                return Ok(());
+            }
             (Some("quest-translate"), _, _) => {
                 let _ = tx.send(orchestrator::Command::ApplyQuestTranslation);
             }

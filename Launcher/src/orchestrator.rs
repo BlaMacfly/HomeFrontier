@@ -427,15 +427,14 @@ impl Orchestrator {
             self.log("Fermez le jeu avant de traduire les quêtes");
             return;
         }
-        let file = frontier_text::quest_translations_file(&self.layout);
-        let translations = match frontier_text::quest::load_translations(&file) {
+        let (translations, manual_n, auto_n) = match frontier_text::quest_translations(&self.layout) {
             Ok(t) => t,
             Err(e) => {
                 self.log(format!("ERREUR : traductions de quêtes illisibles ({e})"));
                 return;
             }
         };
-        self.log(format!("Traduction des quêtes : {} texte(s) traduit(s) disponibles…", translations.len()));
+        self.log(format!("Traduction des quêtes : {} texte(s) traduit(s) disponibles ({manual_n} manuels, {auto_n} automatiques)…", translations.len()));
         let started = std::time::Instant::now();
         match frontier_text::quest::apply_dir(&self.layout.quest_bin().join("quests"), &frontier_text::quest_backup_dir(&self.layout), &translations) {
             Ok(r) => {
@@ -532,7 +531,7 @@ pub fn spawn(layout: Layout) -> (SharedRef, Sender<Command>, JoinHandle<()>) {
                         Command::RestoreQuests => orch.restore_quests(),
                         Command::QuestInventory(out) => {
                             let started = std::time::Instant::now();
-                            match frontier_text::quest::inventory(&orch.layout.quest_bin().join("quests")) {
+                            match frontier_text::quest::inventory(&orch.layout.quest_bin().join("quests"), &frontier_text::quest_backup_dir(&orch.layout)) {
                                 Ok(inv) => {
                                     let occurrences: usize = inv.texts.values().map(|(n, _)| n).sum();
                                     orch.log(format!(

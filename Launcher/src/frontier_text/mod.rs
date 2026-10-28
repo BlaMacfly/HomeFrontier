@@ -51,6 +51,26 @@ pub fn quest_translations_file(layout: &Layout) -> PathBuf {
     layout.root.join("Localization").join("quetes-fr.tsv")
 }
 
+/// Traductions automatiques des quêtes (Tools/traduire-quetes), appliquées après les traductions manuelles.
+pub fn quest_auto_translations_file(layout: &Layout) -> PathBuf {
+    layout.root.join("Localization").join("quetes-fr-auto.tsv")
+}
+
+/// Traductions de quêtes à appliquer : automatiques d'abord, puis manuelles qui les remplacent. Renvoie aussi le
+/// nombre de textes venant de chaque fichier.
+pub fn quest_translations(layout: &Layout) -> Result<(std::collections::HashMap<String, String>, usize, usize), String> {
+    let mut map = std::collections::HashMap::new();
+    let auto_file = quest_auto_translations_file(layout);
+    let auto = if auto_file.is_file() { quest::load_translations(&auto_file)? } else { Default::default() };
+    let auto_n = auto.len();
+    map.extend(auto);
+    let manual_file = quest_translations_file(layout);
+    let manual = if manual_file.is_file() { quest::load_translations(&manual_file)? } else { Default::default() };
+    let manual_n = manual.len();
+    map.extend(manual);
+    Ok((map, manual_n, auto_n))
+}
+
 pub fn quest_backup_dir(layout: &Layout) -> PathBuf {
     layout.user_data().join("Serveur-originaux").join("quests")
 }
@@ -58,7 +78,7 @@ pub fn quest_backup_dir(layout: &Layout) -> PathBuf {
 /// Nombre de quêtes actuellement traduites (= sauvegardées), et existence du fichier de traductions.
 pub fn quest_status(layout: &Layout) -> (usize, bool) {
     let translated = std::fs::read_dir(quest_backup_dir(layout)).map(|d| d.count()).unwrap_or(0);
-    (translated, quest_translations_file(layout).is_file())
+    (translated, quest_translations_file(layout).is_file() || quest_auto_translations_file(layout).is_file())
 }
 
 fn same_content(a: &Path, b: &Path) -> bool {
