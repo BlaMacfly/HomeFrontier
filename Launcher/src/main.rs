@@ -5,6 +5,7 @@ mod api;
 mod client;
 mod credentials;
 mod db;
+mod fixes;
 mod frontier_text;
 mod i18n;
 mod orchestrator;

@@ -82,6 +82,8 @@ pub struct Settings {
     pub server: ServerSettings,
     /// Langue de l'interface du launcher.
     pub ui_language: crate::i18n::Lang,
+    /// Affichage et correctifs de compatibilité du jeu (onglet Jeu).
+    pub game: crate::fixes::GameSettings,
 }
 
 impl Settings {

@@ -42,6 +42,8 @@ pub enum Command {
     ApplySettings(Settings),
     /// Langue de l'interface (enregistrée dans les réglages, à tout moment).
     SetUiLanguage(crate::i18n::Lang),
+    /// Affichage et correctifs du jeu (enregistrés ; appliqués au prochain lancement).
+    SetGameSettings(crate::fixes::GameSettings),
     /// Applique la traduction française aux fichiers texte du client (jeu fermé uniquement).
     ApplyTranslation,
     /// Remet les fichiers texte d'origine du client.
@@ -384,7 +386,22 @@ impl Orchestrator {
             },
         };
         self.log(format!("Lancement du jeu : compte « {user} », {}", if is_new { "nouveau personnage".to_string() } else { format!("personnage « {} »", ch.name) }));
-        match client::launch(&self.layout, &client_dir, &self.settings.server, &auth, &ch, is_new) {
+        let game = &self.settings.game;
+        match crate::fixes::apply(&self.layout, &client_dir, game) {
+            Ok(warnings) => warnings.into_iter().for_each(|w| self.log(format!("Attention : {w}"))),
+            Err(e) => {
+                self.log(format!("ERREUR : réglages du jeu non appliqués ({e})"));
+                return;
+            }
+        }
+        self.log(format!(
+            "Affichage : {}{}, DXVK {}{}",
+            if game.fullscreen { "plein écran" } else { "fenêtré" },
+            if game.width > 0 { format!(" {}×{}", game.width, game.height) } else { String::new() },
+            if game.dxvk { "activé" } else { "désactivé" },
+            if game.dxvk && game.max_fps > 0 { format!(" (limite {} i/s)", game.max_fps) } else { String::new() }
+        ));
+        match client::launch(&self.layout, &client_dir, &self.settings.server, &auth, &ch, is_new, &crate::fixes::environment(&self.layout, game)) {
             Ok(child) => {
                 self.game = Some(child);
                 self.set_state(State::Playing);
@@ -595,6 +612,11 @@ pub fn spawn(layout: Layout) -> (SharedRef, Sender<Command>, JoinHandle<()>) {
                         Command::SetUiLanguage(lang) => {
                             orch.settings.ui_language = lang;
                             orch.save_settings();
+                        }
+                        Command::SetGameSettings(game) => {
+                            orch.settings.game = game;
+                            orch.save_settings();
+                            orch.log("Réglages du jeu enregistrés (appliqués au prochain lancement)");
                         }
                         Command::ApplyTranslation => orch.apply_translation(),
                         Command::RestoreOriginalText => orch.restore_original_text(),

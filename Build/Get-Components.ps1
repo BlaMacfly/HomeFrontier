@@ -62,3 +62,13 @@ if ((Test-Path $questTsv) -and ((Resolve-Path $questTsv).Path -ne $questDest)) {
     Copy-Item $questTsv $questDest -Force
     Write-Host "Traductions des quêtes copiées dans $locDir"
 }
+
+# DXVK (zlib) : seul le d3d9.dll 32 bits sert ; le launcher le copie dans Tools/mhf-iel quand l'option est active.
+$dxvkTgz = Get-Verified $manifest.components.dxvk
+$dxvkDir = Join-Path $Root 'Tools\dxvk'
+New-Item -ItemType Directory -Force $dxvkDir | Out-Null
+$dxvkTop = "dxvk-$($manifest.components.dxvk.tag.TrimStart('v'))"
+& $tar -xzf $dxvkTgz -C $dxvkDir --strip-components 2 "$dxvkTop/x32/d3d9.dll"
+if ($LASTEXITCODE -ne 0) { throw 'échec de l''extraction de DXVK' }
+Copy-Item (Join-Path $PSScriptRoot 'licences\LICENSE-DXVK.txt') $dxvkDir -Force
+Write-Host "DXVK $($manifest.components.dxvk.tag) installé dans $dxvkDir"

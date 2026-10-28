@@ -88,13 +88,18 @@ Le client ZZ est un jeu DirectX 9 conçu pour Windows XP à 7. Rien de spécifiq
 module « FrontierFixes », sur le modèle de VanillaFixes et DXVK dans HomeCraft (activables et réversibles,
 fichiers déposés seulement si leur empreinte est connue).
 
-| Problème probable | Correctif envisagé | Statut |
+Mise en œuvre le 2026-10-28 : module `Launcher/src/fixes.rs` et onglet **Jeu** du launcher. Imports relevés sur le
+client : `mhfo-hd.dll` (32 bits) dépend de `d3d9.dll`, **`d3dx9_43.dll`** (non fournie par Windows), `dinput8.dll`,
+`dsound.dll`, `gdiplus.dll` (fournie avec le jeu). Le jeu tourne dans le processus `Tools/mhf-iel/mhf-iel-cli.exe` :
+les DLL de remplacement (DXVK) vont dans ce dossier, jamais dans celui du client.
+
+| Problème probable | Correctif | Statut |
 |---|---|---|
-| Bibliothèques D3DX9 absentes d'un Windows récent | détection par le launcher ; installateur officiel « DirectX End-User Runtimes (June 2010) », ou DLL redistribuables à côté du jeu si les conditions de redistribution le permettent | à vérifier |
-| Pilotes DirectX 9 récents : saccades, plantages, Alt+Tab (Windows 11 24H2) | **DXVK** (`d3d9.dll`, zlib) : DirectX 9 traduit en Vulkan, comme dans HomeCraft ; indispensable aussi sous Wine (poste CachyOS) | à tester |
-| Écrans 144 à 240 Hz : vitesse du jeu liée aux images par seconde | limiteur d'images (`d3d9.maxFrameRate` de DXVK) | à vérifier |
-| Résolutions 1440p / 4K, écrans ultra-larges, mise à l'échelle Windows (DPI) | réglages de résolution du client à identifier (`mhf.ini` ?), indicateur DPI propre à l'application, plein écran fenêtré | à vérifier |
-| Polices japonaises absentes d'un Windows français | détection et installation de la fonctionnalité Windows « Polices japonaises supplémentaires » (vérifiée aussi par mhf-outpost) | à vérifier |
+| Bibliothèques D3DX9 absentes d'un Windows récent | diagnostic de l'onglet Jeu et avertissement au lancement ; renvoi vers l'installateur officiel « DirectX End-User Runtimes (June 2010) » (pas de redistribution) | fait, à tester sur un Windows neuf |
+| Pilotes DirectX 9 récents : saccades, plantages, Alt+Tab (Windows 11 24H2) | option **DXVK 3.1.1** (`x32/d3d9.dll`, zlib, manifeste) copiée dans `Tools/mhf-iel` ; retirée si l'option est coupée (seulement si l'empreinte est la nôtre) ; `DXVK_CONFIG_FILE` = `UserData/dxvk.conf`, journal dans `Logs/` | fait, **à tester en jeu** |
+| Écrans 144 à 240 Hz : vitesse du jeu liée aux images par seconde | limiteur d'images (`d3d9.maxFrameRate` de DXVK, réglable dans l'onglet Jeu) | fait, à tester |
+| Résolutions 1440p / 4K, écrans ultra-larges, mise à l'échelle Windows (DPI) | `mhf.ini` [SCREEN] : `FULLSCREEN_MODE` (1 supposé = plein écran, **à vérifier**), `WINDOW_/FULLSCREEN_RESOLUTION_W/H` ; original sauvegardé dans `UserData/Client-originaux/mhf.ini` ; option DPI = couche de compatibilité `HighDpiAware` pour le seul processus du jeu | fait, à tester |
+| Polices japonaises absentes d'un Windows français | diagnostic (MS Gothic, Yu Gothic ou Meiryo) avec la marche à suivre (fonctionnalité facultative de Windows) | fait |
 | Paramètres régionaux non japonais (textes, chemins en CP932) | le boot stub démarre le jeu lui-même ; sinon, émulation des paramètres régionaux pour ce seul processus | à vérifier |
 | **Chemins avec des caractères absents de CP932** : le dossier actuel « frontière » contient un `è` | installer le client dans un chemin ASCII (le launcher refusera ou proposera de déplacer) | **probable** |
 | Manettes XInput / DualSense | prise en charge native à tester ; correspondance des touches sinon | à vérifier |
@@ -108,7 +113,7 @@ fichiers déposés seulement si leur empreinte est connue).
 | 0 | Audit, squelette du projet (fait : `Launcher/` compile) | oui |
 | 1 | PostgreSQL portable + Erupe pilotés par le launcher, création de compte par l'API, arrêt propre — **fait le 2026-10-27** (PostgreSQL 17.11, Erupe v9.4.1, premier démarrage et redémarrage testés, aucun processus orphelin) | oui |
 | 2 | Lancement du client via boot stub 32 bits, entrée en jeu — **fait le 2026-10-27** : mhf-iel-cli compilé, sélection du monde, création de personnage et sauvegarde vérifiées en jeu ; quêtes installées. Ajouts : plusieurs comptes, serveur local/distant, ports réglables | non |
-| 2b | Compatibilité 2026 : FrontierFixes (DXVK, D3DX9, limiteur, résolution, DPI, polices, chemin ASCII) | non |
+| 2b | Compatibilité 2026 : FrontierFixes (DXVK, D3DX9, limiteur, résolution, DPI, polices, chemin ASCII) — **intégré au launcher le 2026-10-28** (onglet Jeu), à tester en jeu | non |
 | 3 | Traduction client : application de MHFrontier-Translation (repli des accents), mesure de couverture — **appliquée le 2026-10-28** : 63 218 chaînes (mhfdat 62 789, mhfpac 304, mhfsqd 125), relecture et restauration vérifiées ; 46 chaînes de menus en attente d'un `headers.json` à jour ; à contrôler en jeu | non |
 | 4 | Traduction serveur : Erupe patché (repli), `Language: fr`, quêtes/scénarios en français — **quêtes : outil fait et pilote appliqué le 2026-10-28** (14 223 textes japonais uniques ; 132 traduits = 61 % des occurrences, 266 899 textes dans 54 951 fichiers) ; reste : traduction complète des quêtes, scénarios (145 377 fichiers), patch d'Erupe pour les accents | partiellement |
 | 5 | Accents : recherche de la police, table de glyphes commune client/serveur | non |

@@ -38,6 +38,14 @@
       "url": "https://get.enterprisedb.com/postgresql/postgresql-17.11-5-windows-x64-binaries.zip",
       "sha256": "80379b2c04d51c30225532e0ae04509899141e9957ed096fe749d7fd9df8f82f",
       "license": "PostgreSQL"
+    },
+    "dxvk": {
+      "role": "option « DXVK » du launcher : DirectX 9 traduit en Vulkan (saccades, Alt+Tab, limiteur d'images) ; seul x32/d3d9.dll est gardé, déposé dans Tools/mhf-iel (dossier du processus du jeu) quand l'option est active",
+      "repo": "https://github.com/doitsujin/dxvk",
+      "tag": "v3.1.1",
+      "url": "https://github.com/doitsujin/dxvk/releases/download/v3.1.1/dxvk-3.1.1.tar.gz",
+      "sha256": "40565b4a724aadc4433fa4e010b4b23916d9b1f1baeee64e17186db94f54e608",
+      "license": "zlib (Build/licences/LICENSE-DXVK.txt)"
     }
   }
 }

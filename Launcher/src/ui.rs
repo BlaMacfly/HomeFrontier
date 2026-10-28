@@ -25,6 +25,7 @@ enum Tab {
     Accounts,
     Server,
     Translation,
+    Game,
 }
 
 pub struct App {
@@ -46,6 +47,8 @@ pub struct App {
     new_pass_confirm: String,
     /// Réglages du serveur en cours d'édition (onglet Serveur).
     server_draft: Option<ServerSettings>,
+    /// Réglages du jeu en cours d'édition (onglet Jeu).
+    game_draft: Option<crate::fixes::GameSettings>,
     quit_at: Option<Instant>,
     closing: bool,
 }
@@ -143,6 +146,7 @@ impl App {
                 Some("comptes") => Tab::Accounts,
                 Some("serveur") => Tab::Server,
                 Some("traduction") => Tab::Translation,
+                Some("jeu") => Tab::Game,
                 _ => Tab::Play,
             },
             account_name,
@@ -152,6 +156,7 @@ impl App {
             new_pass: String::new(),
             new_pass_confirm: String::new(),
             server_draft: None,
+            game_draft: None,
             quit_at: quit_after.map(|s| Instant::now() + Duration::from_secs(s)),
             closing: false,
         }
@@ -199,10 +204,10 @@ impl App {
         let t = i18n::texts(self.lang);
         ui.add_space(8.0);
         ui.horizontal(|ui| {
-            for (tab, label) in [(Tab::Play, t.tab_play), (Tab::Accounts, t.tab_accounts), (Tab::Server, t.tab_server), (Tab::Translation, t.tab_translation)] {
+            for (tab, label) in [(Tab::Play, t.tab_play), (Tab::Accounts, t.tab_accounts), (Tab::Server, t.tab_server), (Tab::Translation, t.tab_translation), (Tab::Game, t.tab_game)] {
                 let selected = self.tab == tab;
                 let text = egui::RichText::new(label).size(15.0).color(if selected { GOLD } else { egui::Color32::from_gray(190) });
-                if ui.add(egui::Button::new(text).selected(selected).min_size(egui::vec2((PANEL_WIDTH - 56.0) / 4.0, 28.0))).clicked() {
+                if ui.add(egui::Button::new(text).selected(selected).min_size(egui::vec2((PANEL_WIDTH - 64.0) / 5.0, 28.0))).clicked() {
                     self.tab = tab;
                     if tab == Tab::Accounts {
                         let _ = self.tx.send(Command::RefreshAccounts);
@@ -407,6 +412,65 @@ impl App {
 }
 
 impl App {
+    fn tab_game(&mut self, ui: &mut egui::Ui, state: &State, busy: bool, current: &crate::fixes::GameSettings) {
+        let t = i18n::texts(self.lang);
+        let playing = matches!(state, State::Playing);
+        let draft = self.game_draft.get_or_insert_with(|| current.clone());
+        ui.add_enabled_ui(!playing && !busy, |ui| {
+            section(ui, t.game_display);
+            ui.horizontal(|ui| {
+                ui.radio_value(&mut draft.fullscreen, true, t.game_fullscreen);
+                ui.radio_value(&mut draft.fullscreen, false, t.game_windowed);
+            });
+            let label = |w: u32, h: u32| if w == 0 { t.game_res_unchanged.to_string() } else { format!("{w} × {h}") };
+            ui.horizontal(|ui| {
+                ui.label(t.game_resolution);
+                egui::ComboBox::from_id_salt("resolution").selected_text(label(draft.width, draft.height)).show_ui(ui, |ui| {
+                    ui.selectable_value(&mut (draft.width, draft.height), (0, 0), t.game_res_unchanged);
+                    for (w, h) in crate::fixes::RESOLUTIONS {
+                        if ui.selectable_label((draft.width, draft.height) == (w, h), label(w, h)).clicked() {
+                            (draft.width, draft.height) = (w, h);
+                        }
+                    }
+                });
+            });
+            ui.checkbox(&mut draft.dpi_aware, t.game_dpi);
+            section(ui, t.game_fixes);
+            ui.checkbox(&mut draft.dxvk, t.game_dxvk);
+            ui.small(t.game_dxvk_hint);
+            ui.add_enabled_ui(draft.dxvk, |ui| {
+                ui.horizontal(|ui| {
+                    ui.label(t.game_max_fps);
+                    ui.add(egui::DragValue::new(&mut draft.max_fps).range(0..=360));
+                    ui.small(t.game_max_fps_hint);
+                });
+            });
+        });
+        let changed = draft != current;
+        ui.add_space(6.0);
+        ui.horizontal(|ui| {
+            if ui.add_enabled(!playing && !busy && changed, egui::Button::new(t.save)).clicked() {
+                let _ = self.tx.send(Command::SetGameSettings(draft.clone()));
+            }
+            if ui.add_enabled(!playing && !busy && changed, egui::Button::new(t.cancel)).clicked() {
+                *draft = current.clone();
+            }
+        });
+        if playing {
+            ui.colored_label(GOLD, t.translation_close_game);
+        }
+
+        section(ui, t.game_checks);
+        for c in crate::fixes::diagnostics(&self.layout, &self.layout.default_client_dir(), draft) {
+            if c.ok {
+                ui.colored_label(OK_GREEN, format!("✔ {}", c.label));
+            } else {
+                ui.colored_label(KO_RED, format!("✘ {}", c.label));
+                ui.small(c.hint);
+            }
+        }
+    }
+
     fn tab_translation(
         &mut self,
         ui: &mut egui::Ui,
@@ -508,6 +572,9 @@ impl eframe::App for App {
         if self.tab != Tab::Server {
             self.server_draft = None;
         }
+        if self.tab != Tab::Game {
+            self.game_draft = None;
+        }
 
         egui::CentralPanel::default().frame(egui::Frame::NONE).show(ctx, |ui| {
             let full = ui.max_rect();
@@ -535,11 +602,15 @@ impl eframe::App for App {
             let mut panel_ui = ui.new_child(egui::UiBuilder::new().max_rect(panel_rect.shrink(16.0)));
             self.header(&mut panel_ui);
             self.tabs(&mut panel_ui);
-            egui::ScrollArea::vertical().auto_shrink(false).show(&mut panel_ui, |ui| match self.tab {
+            // Hauteur réservée au pied de colonne (dossier d'installation), qui sinon chevauche le contenu.
+            let footer = panel_ui.text_style_height(&egui::TextStyle::Small) + 6.0;
+            let height = (panel_ui.available_height() - footer).max(0.0);
+            egui::ScrollArea::vertical().auto_shrink(false).max_height(height).show(&mut panel_ui, |ui| match self.tab {
                 Tab::Play => self.tab_play(ui, &state, busy, session.as_ref(), &settings.server),
                 Tab::Accounts => self.tab_accounts(ui, &state, busy, &accounts, &settings.server),
                 Tab::Server => self.tab_server(ui, &state, busy, &settings.server),
                 Tab::Translation => self.tab_translation(ui, &state, busy, translation.as_ref(), quests, scenarios),
+                Tab::Game => self.tab_game(ui, &state, busy, &settings.game),
             });
             panel_ui.small(egui::RichText::new(format!("{} : {}", t.root, self.layout.root.display())).color(egui::Color32::from_gray(120)));
         });

@@ -94,6 +94,17 @@ UserData/, Logs/, et le launcher copié en `HomeFrontier.exe`).
 - Visuels : `Launcher/assets/fond.jpg` (affiche fournie par l'utilisateur, contient le logo Capcom : à
   remplacer avant toute diffusion), `logo-source.png` → `logo-512.png` et `frontier.ico` (icône de l'exe).
 
+- Compatibilité 2026 (« FrontierFixes », `fixes.rs`, onglet **Jeu**, `--tab jeu`) : réglages `settings.game`
+  (plein écran, résolution, DPI, DXVK, limite d'images) appliqués à chaque lancement. DXVK 3.1.1 (manifeste,
+  `Get-Components.ps1` → `<racine>/Tools/dxvk/d3d9.dll` + licence zlib `Build/licences/LICENSE-DXVK.txt`) est copié
+  dans `Tools/mhf-iel/` : le jeu tourne dans le processus de mhf-iel-cli, et un `d3d9.dll` dans `Client/` serait
+  ignoré (dossier de l'exe puis SysWOW64 avant le dossier courant). `mhf.ini` [SCREEN] modifié, original sauvegardé
+  dans `UserData/Client-originaux/mhf.ini`. Diagnostic : `d3dx9_43.dll` (non redistribuée : renvoi vers
+  l'installateur DirectX June 2010), polices japonaises, Vulkan 32 bits, chemin ASCII. Rien de tout cela n'est
+  encore testé en jeu (sens de `FULLSCREEN_MODE` à confirmer).
+- Tests du launcher : `cargo test --release` (31 tests ; `hex` en dépendance de test pour ceux repris de
+  mhf-outpost).
+
 ## Pièges connus
 - Mondes : le client filtre les rangs selon le `Type` de l'entrée. Un nouveau personnage est refusé
   (« Insufficient Hunter Rank ») sur un monde Normal (type 1) : garder un monde Newbie (type 3) en premier.

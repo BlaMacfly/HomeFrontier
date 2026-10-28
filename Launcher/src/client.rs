@@ -83,7 +83,15 @@ pub fn config_file(layout: &Layout) -> PathBuf {
 }
 
 /// Écrit la configuration (jeton compris, fichier personnel dans UserData) et lance le boot stub.
-pub fn launch(layout: &Layout, client_dir: &Path, server: &ServerSettings, auth: &AuthData, ch: &ApiCharacter, is_new: bool) -> Result<Child, String> {
+pub fn launch(
+    layout: &Layout,
+    client_dir: &Path,
+    server: &ServerSettings,
+    auth: &AuthData,
+    ch: &ApiCharacter,
+    is_new: bool,
+    env: &[(String, PathBuf)],
+) -> Result<Child, String> {
     let problems = check(layout, client_dir);
     if !problems.is_empty() {
         return Err(problems.join(" ; "));
@@ -96,6 +104,7 @@ pub fn launch(layout: &Layout, client_dir: &Path, server: &ServerSettings, auth:
     std::process::Command::new(layout.mhf_iel_cli())
         .arg("--config-file")
         .arg(config_file(layout))
+        .envs(env.iter().map(|(k, v)| (k, v)))
         .current_dir(client_dir)
         .stdin(std::process::Stdio::null())
         .stdout(log)
