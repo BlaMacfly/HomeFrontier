@@ -34,3 +34,4 @@ desktop.ini
 /Tools/traduire-quetes/.venv/
 /Tools/traduire-quetes/modele-nllb-*/
 /Tools/traduire-quetes/__pycache__/
+Build/go/

@@ -102,6 +102,15 @@ UserData/, Logs/, et le launcher copié en `HomeFrontier.exe`).
   dans `UserData/Client-originaux/mhf.ini`. Diagnostic : `d3dx9_43.dll` (non redistribuée : renvoi vers
   l'installateur DirectX June 2010), polices japonaises, Vulkan 32 bits, chemin ASCII. Rien de tout cela n'est
   encore testé en jeu (sens de `FULLSCREEN_MODE` à confirmer).
+- Erupe recompilé (`Build/Build-Erupe.ps1`) : sources au commit `efec0e4` (tag v9.4.1) dans `Build/erupe-src`,
+  correctifs `Build/patches/erupe-*.patch` (aujourd'hui : `UTF8ToSJIS` et `PaddedString` replient les accents
+  — é→e, œ→oe, «»→" — au lieu de les supprimer ; 55 messages de `lang_fr.go` concernés), Go 1.27.3 portable dans
+  `Build/go` (archive go.dev, empreinte du manifeste, `GOTOOLCHAIN=local`). Binaire installé en
+  `Server/erupe/erupe-ce.exe`, officiel gardé en `erupe-ce-officiel.exe`. Le script ne peut pas être lancé
+  depuis Claude (`-ExecutionPolicy Bypass` refusé) : mêmes étapes à la main (`go test ./common/stringsupport/`,
+  `go build -o erupe-ce.exe`).
+- Tests en jeu : `Documentation/03-Plan-de-tests.md`. Base sauvegardée avant tests :
+  `UserData/Sauvegardes/Database-2026-10-28-avant-tests`.
 - Tests du launcher : `cargo test --release` (31 tests ; `hex` en dépendance de test pour ceux repris de
   mhf-outpost).
 

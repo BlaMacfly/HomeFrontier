@@ -5,11 +5,19 @@
       "role": "serveur de jeu MHF (Go, MIT) — dépôt archivé le 2026-07-18, dernière version",
       "repo": "https://github.com/Mezeporta/Erupe",
       "tag": "v9.4.1",
-      "commit": "9604df995f981d2aac7c27bd6b21e58ddd0a2732",
+      "commit": "efec0e4793d74daef5d75a6796d158c1ee1e7fd0",
+      "tag_object": "9604df995f981d2aac7c27bd6b21e58ddd0a2732",
       "url": "https://github.com/Mezeporta/Erupe/releases/download/v9.4.1/erupe-Windows-amd64.zip",
       "sha256": "7fdaa485e753801cdec191fc3bb588c72366cfb2b2d12c2d1f14ff820c9d9d28",
       "license": "MIT",
-      "note": "binaire de référence ; une version patchée (encodage du français) sera compilée depuis les sources, voir Documentation/01-Audit.md"
+      "note": "le zip officiel fournit configurations et binaire de référence ; Build/Build-Erupe.ps1 recompile ce commit avec Build/patches/erupe-*.patch (repli des accents du français) et remplace erupe-ce.exe"
+    },
+    "go": {
+      "role": "compilation d'Erupe patché (Build/Build-Erupe.ps1) ; archive officielle décompressée dans Build/go, aucune installation système",
+      "version": "1.27.3",
+      "url": "https://go.dev/dl/go1.27.3.windows-amd64.zip",
+      "sha256": "f26081f438319757f8a1b46d7d0b2c5ec7583d4038e485e0aa725cfde7885fff",
+      "license": "BSD-3-Clause"
     },
     "mhf-iel": {
       "role": "lancement direct du client sans mhf.exe / mhl.dll / Internet Explorer (Rust nightly, i686)",

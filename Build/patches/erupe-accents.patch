@@ -1,0 +1,97 @@
+diff --git a/common/stringsupport/string_convert.go b/common/stringsupport/string_convert.go
+index dc76575..6522fc8 100644
+--- a/common/stringsupport/string_convert.go
++++ b/common/stringsupport/string_convert.go
+@@ -12,21 +12,44 @@ import (
+ 	"golang.org/x/text/transform"
+ )
+ 
+-// UTF8ToSJIS encodes a UTF-8 string to Shift-JIS bytes, silently dropping any
+-// runes that cannot be represented in Shift-JIS.
++// latinFold replaces Latin letters and punctuation that Shift-JIS cannot
++// encode (French, Spanish accents...) with their closest ASCII form.
++// HomeFrontier: same table as the client translation (mhf-outpost
++// transliterate_for_sjis), so server text matches the game's own French.
++var latinFold = map[rune]string{
++	'À': "A", 'Á': "A", 'Â': "A", 'Ã': "A", 'Ä': "A", 'Å': "A",
++	'à': "a", 'á': "a", 'â': "a", 'ã': "a", 'ä': "a", 'å': "a",
++	'Æ': "AE", 'æ': "ae", 'Ç': "C", 'ç': "c",
++	'È': "E", 'É': "E", 'Ê': "E", 'Ë': "E", 'è': "e", 'é': "e", 'ê': "e", 'ë': "e",
++	'Ì': "I", 'Í': "I", 'Î': "I", 'Ï': "I", 'ì': "i", 'í': "i", 'î': "i", 'ï': "i",
++	'Ñ': "N", 'ñ': "n",
++	'Ò': "O", 'Ó': "O", 'Ô': "O", 'Õ': "O", 'Ö': "O", 'Ø': "O",
++	'ò': "o", 'ó': "o", 'ô': "o", 'õ': "o", 'ö': "o", 'ø': "o",
++	'Œ': "OE", 'œ': "oe",
++	'Ù': "U", 'Ú': "U", 'Û': "U", 'Ü': "U", 'ù': "u", 'ú': "u", 'û': "u", 'ü': "u",
++	'Ý': "Y", 'Ÿ': "Y", 'ý': "y", 'ÿ': "y", 'ß': "ss",
++	'«': "\"", '»': "\"", '‹': "'", '›': "'", '„': "\"", '‚': "'",
++	'–': "-", ' ': " ", ' ': " ", '¡': "!", '¿': "?",
++}
++
++// UTF8ToSJIS encodes a UTF-8 string to Shift-JIS bytes. Runes that cannot be
++// represented in Shift-JIS are replaced by their ASCII fold (é → e) when one
++// exists, and silently dropped otherwise.
+ func UTF8ToSJIS(x string) []byte {
+ 	e := japanese.ShiftJIS.NewEncoder()
+ 	xt, _, err := transform.String(e, x)
+ 	if err != nil {
+ 		// Filter out runes that can't be encoded to Shift-JIS instead of
+ 		// crashing the server (see PR #116).
+-		var filtered []rune
++		var filtered strings.Builder
+ 		for _, r := range x {
+ 			if _, _, err := transform.String(japanese.ShiftJIS.NewEncoder(), string(r)); err == nil {
+-				filtered = append(filtered, r)
++				filtered.WriteRune(r)
++			} else if folded, ok := latinFold[r]; ok {
++				filtered.WriteString(folded)
+ 			}
+ 		}
+-		xt, _, _ = transform.String(japanese.ShiftJIS.NewEncoder(), string(filtered))
++		xt, _, _ = transform.String(japanese.ShiftJIS.NewEncoder(), filtered.String())
+ 	}
+ 	return []byte(xt)
+ }
+@@ -75,12 +98,9 @@ func ToNGWord(x string) []uint16 {
+ // size. If t is true the string is first encoded to Shift-JIS.
+ func PaddedString(x string, size uint, t bool) []byte {
+ 	if t {
+-		e := japanese.ShiftJIS.NewEncoder()
+-		xt, _, err := transform.String(e, x)
+-		if err != nil {
+-			return make([]byte, size)
+-		}
+-		x = xt
++		// HomeFrontier: fold accents like UTF8ToSJIS instead of returning an
++		// empty string as soon as one rune cannot be encoded.
++		x = string(UTF8ToSJIS(x))
+ 	}
+ 	out := make([]byte, size)
+ 	copy(out, x)
+diff --git a/common/stringsupport/string_convert_test.go b/common/stringsupport/string_convert_test.go
+index f186f16..50953c5 100644
+--- a/common/stringsupport/string_convert_test.go
++++ b/common/stringsupport/string_convert_test.go
+@@ -585,3 +585,22 @@ func BenchmarkToNGWord(b *testing.B) {
+ 		_ = ToNGWord(text)
+ 	}
+ }
++
++// HomeFrontier: French text keeps its letters (folded) instead of losing them.
++func TestUTF8ToSJISFoldsLatinAccents(t *testing.T) {
++	tests := []struct{ in, want string }{
++		{"Réinitialisation le %d/%d", "Reinitialisation le %d/%d"},
++		{"La commande %s est désactivée", "La commande %s est desactivee"},
++		{"Cœur « garçon » à Noël", "Coeur \" garcon \" a Noel"},
++		{"ハンター é", "ハンター e"},
++	}
++	for _, tt := range tests {
++		got, err := SJISToUTF8(UTF8ToSJIS(tt.in))
++		if err != nil || got != tt.want {
++			t.Errorf("UTF8ToSJIS(%q) = %q (%v), want %q", tt.in, got, err, tt.want)
++		}
++	}
++	if got, _ := SJISToUTF8(bytes.TrimRight(PaddedString("Activé", 10, true), "\x00")); got != "Active" {
++		t.Errorf("PaddedString(\"Activé\") = %q, want \"Active\"", got)
++	}
++}
