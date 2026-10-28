@@ -54,6 +54,12 @@ pub enum Command {
     ApplyQuestTranslation,
     /// Remet les quêtes d'origine.
     RestoreQuests,
+    /// Outil de traduction : inventaire des textes des scénarios du serveur, écrit en TSV.
+    ScenarioInventory(std::path::PathBuf),
+    /// Applique `Localization/scenarios-fr.tsv` et `scenarios-fr-auto.tsv` aux scénarios du serveur.
+    ApplyScenarioTranslation,
+    /// Remet les scénarios d'origine.
+    RestoreScenarios,
     Shutdown,
 }
 
@@ -70,6 +76,8 @@ pub struct Shared {
     pub translation: Option<frontier_text::Status>,
     /// Quêtes du serveur traduites (nombre de fichiers) et présence du fichier de traductions.
     pub quests: (usize, bool),
+    /// Scénarios du serveur traduits (nombre de fichiers) et présence d'un fichier de traductions.
+    pub scenarios: (usize, bool),
 }
 
 pub type SharedRef = Arc<Mutex<Shared>>;
@@ -388,9 +396,11 @@ impl Orchestrator {
     fn refresh_translation(&self) {
         let status = frontier_text::status(&self.layout, &self.layout.default_client_dir());
         let quests = frontier_text::quest_status(&self.layout);
+        let scenarios = frontier_text::scenario_status(&self.layout);
         if let Ok(mut sh) = self.shared.lock() {
             sh.translation = Some(status);
             sh.quests = quests;
+            sh.scenarios = scenarios;
         }
     }
 
@@ -455,6 +465,67 @@ impl Orchestrator {
         }
         match frontier_text::quest::restore_dir(&self.layout.quest_bin().join("quests"), &frontier_text::quest_backup_dir(&self.layout)) {
             Ok(n) => self.log(format!("Quêtes d'origine restaurées ({n} fichier(s))")),
+            Err(e) => self.log(format!("ERREUR : {e}")),
+        }
+        self.refresh_translation();
+    }
+
+    fn write_inventory(&self, label: &str, inv: Result<frontier_text::quest::Inventory, String>, out: &std::path::Path, names: &[&str], started: std::time::Instant) {
+        match inv {
+            Ok(inv) => {
+                let occurrences: usize = inv.texts.values().map(|(n, _)| n).sum();
+                self.log(format!(
+                    "{label} : {} fichier(s), {} illisible(s), {} texte(s) uniques pour {occurrences} occurrence(s), en {} s",
+                    inv.files,
+                    inv.unreadable.len(),
+                    inv.texts.len(),
+                    started.elapsed().as_secs()
+                ));
+                if !inv.unreadable.is_empty() {
+                    self.log(format!("  illisibles (premiers) : {}", inv.unreadable.iter().take(10).cloned().collect::<Vec<_>>().join(", ")));
+                }
+                match frontier_text::quest::write_inventory_tsv(&inv, out, names) {
+                    Ok(()) => self.log(format!("  inventaire écrit : {}", out.display())),
+                    Err(e) => self.log(format!("ERREUR : {e}")),
+                }
+            }
+            Err(e) => self.log(format!("ERREUR : {e}")),
+        }
+    }
+
+    fn apply_scenario_translation(&self) {
+        if self.game.is_some() {
+            self.log("Fermez le jeu avant de traduire les scénarios");
+            return;
+        }
+        let (translations, manual_n, auto_n) = match frontier_text::scenario_translations(&self.layout) {
+            Ok(t) => t,
+            Err(e) => {
+                self.log(format!("ERREUR : traductions de scénarios illisibles ({e})"));
+                return;
+            }
+        };
+        self.log(format!("Traduction des scénarios : {} texte(s) traduit(s) disponibles ({manual_n} manuels, {auto_n} automatiques)…", translations.len()));
+        let started = std::time::Instant::now();
+        match frontier_text::scenario::apply_dir(&self.layout.quest_bin().join("scenarios"), &frontier_text::scenario_backup_dir(&self.layout), &translations) {
+            Ok(r) => {
+                self.log(format!("Scénarios traduits : {} fichier(s) modifié(s) sur {}, {} texte(s) remplacé(s), en {} s", r.changed, r.files, r.texts, started.elapsed().as_secs()));
+                if self.erupe.is_some() {
+                    self.log("Redémarrez le serveur pour qu'Erupe recharge les scénarios");
+                }
+            }
+            Err(e) => self.log(format!("ERREUR : {e}")),
+        }
+        self.refresh_translation();
+    }
+
+    fn restore_scenarios(&self) {
+        if self.game.is_some() {
+            self.log("Fermez le jeu avant de restaurer les scénarios");
+            return;
+        }
+        match frontier_text::scenario::restore_dir(&self.layout.quest_bin().join("scenarios"), &frontier_text::scenario_backup_dir(&self.layout)) {
+            Ok(n) => self.log(format!("Scénarios d'origine restaurés ({n} fichier(s))")),
             Err(e) => self.log(format!("ERREUR : {e}")),
         }
         self.refresh_translation();
@@ -531,27 +602,16 @@ pub fn spawn(layout: Layout) -> (SharedRef, Sender<Command>, JoinHandle<()>) {
                         Command::RestoreQuests => orch.restore_quests(),
                         Command::QuestInventory(out) => {
                             let started = std::time::Instant::now();
-                            match frontier_text::quest::inventory(&orch.layout.quest_bin().join("quests"), &frontier_text::quest_backup_dir(&orch.layout)) {
-                                Ok(inv) => {
-                                    let occurrences: usize = inv.texts.values().map(|(n, _)| n).sum();
-                                    orch.log(format!(
-                                        "Quêtes : {} fichier(s), {} illisible(s), {} texte(s) uniques pour {occurrences} occurrence(s), en {} s",
-                                        inv.files,
-                                        inv.unreadable.len(),
-                                        inv.texts.len(),
-                                        started.elapsed().as_secs()
-                                    ));
-                                    if !inv.unreadable.is_empty() {
-                                        orch.log(format!("  illisibles (premiers) : {}", inv.unreadable.iter().take(10).cloned().collect::<Vec<_>>().join(", ")));
-                                    }
-                                    match frontier_text::quest::write_inventory_tsv(&inv, &out) {
-                                        Ok(()) => orch.log(format!("  inventaire écrit : {}", out.display())),
-                                        Err(e) => orch.log(format!("ERREUR : {e}")),
-                                    }
-                                }
-                                Err(e) => orch.log(format!("ERREUR : {e}")),
-                            }
+                            let inv = frontier_text::quest::inventory(&orch.layout.quest_bin().join("quests"), &frontier_text::quest_backup_dir(&orch.layout));
+                            orch.write_inventory("Quêtes", inv, &out, &frontier_text::quest::FIELD_NAMES, started);
                         }
+                        Command::ScenarioInventory(out) => {
+                            let started = std::time::Instant::now();
+                            let inv = frontier_text::scenario::inventory(&orch.layout.quest_bin().join("scenarios"), &frontier_text::scenario_backup_dir(&orch.layout));
+                            orch.write_inventory("Scénarios", inv, &out, &frontier_text::scenario::FIELD_NAMES, started);
+                        }
+                        Command::ApplyScenarioTranslation => orch.apply_scenario_translation(),
+                        Command::RestoreScenarios => orch.restore_scenarios(),
                         Command::VerifyTranslation(needle) => {
                             for (file, r) in frontier_text::verify(&orch.layout.default_client_dir(), &needle) {
                                 orch.log(match r {

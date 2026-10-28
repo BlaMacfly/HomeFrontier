@@ -20,6 +20,7 @@ mod patch;
 #[allow(dead_code)]
 mod pointer_tables;
 pub mod quest;
+pub mod scenario;
 
 use std::path::{Path, PathBuf};
 
@@ -59,13 +60,32 @@ pub fn quest_auto_translations_file(layout: &Layout) -> PathBuf {
 /// Traductions de quêtes à appliquer : automatiques d'abord, puis manuelles qui les remplacent. Renvoie aussi le
 /// nombre de textes venant de chaque fichier.
 pub fn quest_translations(layout: &Layout) -> Result<(std::collections::HashMap<String, String>, usize, usize), String> {
+    merged_translations(&quest_translations_file(layout), &quest_auto_translations_file(layout))
+}
+
+/// Traductions des scénarios : `Localization/scenarios-fr.tsv` (manuel) l'emporte sur `scenarios-fr-auto.tsv`.
+pub fn scenario_translations(layout: &Layout) -> Result<(std::collections::HashMap<String, String>, usize, usize), String> {
+    let loc = layout.root.join("Localization");
+    merged_translations(&loc.join("scenarios-fr.tsv"), &loc.join("scenarios-fr-auto.tsv"))
+}
+
+pub fn scenario_backup_dir(layout: &Layout) -> PathBuf {
+    layout.user_data().join("Serveur-originaux").join("scenarios")
+}
+
+/// Nombre de scénarios actuellement traduits (= sauvegardés), et existence d'un fichier de traductions.
+pub fn scenario_status(layout: &Layout) -> (usize, bool) {
+    let translated = std::fs::read_dir(scenario_backup_dir(layout)).map(|d| d.count()).unwrap_or(0);
+    let loc = layout.root.join("Localization");
+    (translated, loc.join("scenarios-fr.tsv").is_file() || loc.join("scenarios-fr-auto.tsv").is_file())
+}
+
+fn merged_translations(manual_file: &Path, auto_file: &Path) -> Result<(std::collections::HashMap<String, String>, usize, usize), String> {
     let mut map = std::collections::HashMap::new();
-    let auto_file = quest_auto_translations_file(layout);
-    let auto = if auto_file.is_file() { quest::load_translations(&auto_file)? } else { Default::default() };
+    let auto = if auto_file.is_file() { quest::load_translations(auto_file)? } else { Default::default() };
     let auto_n = auto.len();
     map.extend(auto);
-    let manual_file = quest_translations_file(layout);
-    let manual = if manual_file.is_file() { quest::load_translations(&manual_file)? } else { Default::default() };
+    let manual = if manual_file.is_file() { quest::load_translations(manual_file)? } else { Default::default() };
     let manual_n = manual.len();
     map.extend(manual);
     Ok((map, manual_n, auto_n))

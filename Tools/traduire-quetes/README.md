@@ -29,6 +29,11 @@ Traduire.cmd -Racine C:\Jeux\HomeFrontier
 
 Options : `-Limite 50` (essai), `-Largeur 26` (caractères par ligne), `-SansAppliquer`, `-Modele 1.3B`.
 
+Scénarios (dialogues des PNJ, histoires) : `Traduire.cmd -Racine C:\Jeux\HomeFrontier -Textes scenarios`
+(lignes de 44 caractères par défaut, pages de 4 lignes au plus, variables `@MYNAME`… protégées) →
+`Localization\scenarios-fr-auto.tsv`, corrections manuelles dans `scenarios-fr.tsv`. Seuls les textes en clair des
+scénarios sont traduits ; les scripts de dialogue compressés (JKR) ne le sont pas encore.
+
 ## Qualité
 
 - Les traductions faites à la main (`Localization\quetes-fr.tsv`) ne sont jamais retraduites et restent

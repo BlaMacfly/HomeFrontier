@@ -200,6 +200,12 @@ def finish(text: str) -> str:
 
 
 def wrap(text: str, width: int) -> list[str]:
+    # La ponctuation double française (« ? », « ! », « : », « ; ») reste collée au mot qui la précède.
+    text = re.sub(r" (?=[?!:;](?:\s|$))", "\x00", text)
+    return [l.replace("\x00", " ") for l in _wrap(text, width)]
+
+
+def _wrap(text: str, width: int) -> list[str]:
     lines, cur = [], ""
     for word in text.split(" "):
         while len(word) > width:  # mot plus long qu'une ligne : coupé net
@@ -241,6 +247,10 @@ TITLE_PATTERNS = [
     (re.compile(r"^(?P<x>[^぀-ヿ㐀-鿿]+?)\s*[と&]\s*(?P<y>[^぀-ヿ㐀-鿿]+)$"), "{x} et {y}"),
 ]
 BRACKET = re.compile(r"【([^】]*)】")
+# Variables des scénarios, remplacées pendant la traduction par un mot que le modèle recopie tel quel.
+VARIABLES = {"@MYNAME": "Mathis", "@MYCLEARNUM": "7777", "@MYMONEY": "8888", "@CHAHR": "9999"}
+# Lignes par page de dialogue (les pages japonaises en ont 3 ou 4 ; à confirmer en jeu).
+PAGE_LINES = 4
 PLAYERS = re.compile(r"^(\d+)人(?:向け|用|専用)?$")
 
 
@@ -380,11 +390,72 @@ class Translator:
             body = " ".join(codes) + " " + body
         return "\n".join(wrap(body, self.width))
 
+    def dialogue(self, text: str, script: bool = False) -> str:
+        """Scénarios (dialogues des PNJ, histoires) : pages séparées par @RETURN, chacune traduite et recoupée ;
+        variables du jeu (@MYNAME…) protégées ; couleurs gardées seulement quand elles entourent toute la page."""
+        # Répliques des scripts de dialogue (`script`, chunks compressés) : lignes séparées par \r\n, une bulle par
+        # réplique, pas de @RETURN connu dans ce format : on ne coupe pas en pages.
+        crlf = script or "\r" in text
+        if crlf:
+            text = text.replace("\r\n", "\n").replace("\r", "\n")
+        pages = []
+        for page in text.split("@RETURN"):
+            if not JAPANESE.search(page):
+                pages.append(page)
+                continue
+            lead = page[: len(page) - len(page.lstrip("\n"))]
+            trail = page[len(page.rstrip("\n")) :]
+            lines = [l for l in page.split("\n") if l.strip()]
+            indent = "　" if lines and all(l.startswith("　") for l in lines) else ""
+            body = page.strip("\n").replace("　", " ").strip()
+            body = re.sub(r"@MYNAME\s*(?:さん|ちゃん|くん|君|様|殿)", "@MYNAME", body)
+            # Tic de langage des Félynes (« ニャ ») : le modèle en fait un prénom (« Nina »). « ニャん » = « なん ».
+            body = re.sub(r"ニャ(?=[ぁ-ゖ])(?![ぁぃぅぇぉっー])", "な", body)
+            body = re.sub(r"ニャ[ぁあーッっ]*(?![ァ-ヺ])", "", body)
+            wrapper = re.fullmatch(r"(~C\d\d)(.*)~C00", body, re.S)
+            if wrapper and "~C" not in wrapper[2]:
+                color, body = wrapper[1], wrapper[2]
+            else:
+                color = ""
+            body = re.sub(r"~C\d\d", "", body)
+            stand_ins = {}
+            for var, stand_in in VARIABLES.items():
+                if var in body:
+                    body = body.replace(var, stand_in)
+                    stand_ins[var] = stand_in
+            # Après les variables (@CHAHR) : sinon le modèle lit « HR » comme « ressources humaines ».
+            body = re.sub(r"[ＨH][ＲR](?![A-ZＡ-Ｚ])", "rang de chasseur", body)
+            chapter = re.fullmatch(r"【([^】]*)】", body.strip())
+            if chapter:  # titre de chapitre : crochets japonais gardés
+                fr = f"【{self.name(chapter[1])}】"
+            else:
+                fr = self.paragraph(body)
+            lost = False
+            for var, stand_in in stand_ins.items():
+                if stand_in not in fr:
+                    lost = True
+                fr = fr.replace(stand_in, var)
+            if lost or not fr.strip():  # variable perdue par le modèle : la page reste en japonais plutôt que fausse
+                pages.append(page)
+                continue
+            out = [indent + l for l in fr.split("\n")]
+            if color:
+                out[0] = color + out[0]
+                out[-1] = out[-1] + "~C00"
+            # Une page plus longue que la boîte de dialogue est coupée en plusieurs pages.
+            limit = len(out) if crlf else max(PAGE_LINES, len(lines))
+            parts = ["\n".join(out[i : i + limit]) for i in range(0, len(out), limit)]
+            pages.append(lead + ("@RETURN" + lead).join(parts) + trail)
+        result = "@RETURN".join(pages)
+        return result.replace("\n", "\r\n") if crlf else result
+
     def translate(self, text: str, fields: str) -> str:
         # Un même texte peut servir à plusieurs champs (« champs » de l'inventaire) : titre d'abord, puis règles
         # d'objectifs, et jamais de règles sur une description.
         if not JAPANESE.search(text):
             return text  # déjà en anglais ou sans texte (quelques quêtes du client d'origine) : inchangé
+        if "scenario" in fields:
+            return self.dialogue(text, script="scenario_dialogue" in fields)
         if "titre" in fields:
             return self.title(text)
         rule = self.by_rule(text) if "description" not in fields else None

@@ -407,7 +407,15 @@ impl App {
 }
 
 impl App {
-    fn tab_translation(&mut self, ui: &mut egui::Ui, state: &State, busy: bool, status: Option<&crate::frontier_text::Status>, quests: (usize, bool)) {
+    fn tab_translation(
+        &mut self,
+        ui: &mut egui::Ui,
+        state: &State,
+        busy: bool,
+        status: Option<&crate::frontier_text::Status>,
+        quests: (usize, bool),
+        scenarios: (usize, bool),
+    ) {
         let t = i18n::texts(self.lang);
         use crate::frontier_text::Status;
         section(ui, t.translation_state);
@@ -457,6 +465,27 @@ impl App {
                 let _ = self.tx.send(Command::RestoreQuests);
             }
         });
+
+        // Scénarios envoyés par le serveur (Localization/scenarios-fr.tsv et scenarios-fr-auto.tsv).
+        let (translated_scenarios, has_scenario_file) = scenarios;
+        section(ui, t.scenarios_state);
+        if translated_scenarios > 0 {
+            ui.colored_label(OK_GREEN, format!("{translated_scenarios} {}", t.scenarios_on));
+        } else {
+            ui.colored_label(GOLD, t.scenarios_off);
+        }
+        if !has_scenario_file {
+            ui.colored_label(KO_RED, t.scenarios_no_file);
+        }
+        ui.small(t.scenarios_about);
+        ui.horizontal(|ui| {
+            if ui.add_enabled(!busy && !playing && has_scenario_file, egui::Button::new(t.scenarios_apply)).clicked() {
+                let _ = self.tx.send(Command::ApplyScenarioTranslation);
+            }
+            if ui.add_enabled(!busy && !playing && translated_scenarios > 0, egui::Button::new(t.scenarios_restore)).clicked() {
+                let _ = self.tx.send(Command::RestoreScenarios);
+            }
+        });
     }
 }
 
@@ -471,9 +500,9 @@ impl eframe::App for App {
             // La fenêtre se ferme ; main() attend l'arrêt des services par l'orchestrateur.
             self.closing = true;
         }
-        let (state, busy, log, session, accounts, settings, translation, quests) = {
+        let (state, busy, log, session, accounts, settings, translation, quests, scenarios) = {
             let sh = self.shared.lock().unwrap_or_else(|e| e.into_inner());
-            (sh.state.clone().unwrap_or(State::Stopped), sh.busy, sh.log.clone(), sh.session.clone(), sh.accounts.clone(), sh.settings.clone(), sh.translation.clone(), sh.quests)
+            (sh.state.clone().unwrap_or(State::Stopped), sh.busy, sh.log.clone(), sh.session.clone(), sh.accounts.clone(), sh.settings.clone(), sh.translation.clone(), sh.quests, sh.scenarios)
         };
         // Réglages enregistrés par l'orchestrateur : le brouillon de l'onglet Serveur repart de ceux-ci.
         if self.tab != Tab::Server {
@@ -510,7 +539,7 @@ impl eframe::App for App {
                 Tab::Play => self.tab_play(ui, &state, busy, session.as_ref(), &settings.server),
                 Tab::Accounts => self.tab_accounts(ui, &state, busy, &accounts, &settings.server),
                 Tab::Server => self.tab_server(ui, &state, busy, &settings.server),
-                Tab::Translation => self.tab_translation(ui, &state, busy, translation.as_ref(), quests),
+                Tab::Translation => self.tab_translation(ui, &state, busy, translation.as_ref(), quests, scenarios),
             });
             panel_ui.small(egui::RichText::new(format!("{} : {}", t.root, self.layout.root.display())).color(egui::Color32::from_gray(120)));
         });

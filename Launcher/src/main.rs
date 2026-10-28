@@ -75,6 +75,15 @@ fn main() -> eframe::Result {
             (Some("quest-inventory"), Some(out), _) => {
                 let _ = tx.send(orchestrator::Command::QuestInventory(std::path::PathBuf::from(out)));
             }
+            (Some("scenario-inventory"), Some(out), _) => {
+                let _ = tx.send(orchestrator::Command::ScenarioInventory(std::path::PathBuf::from(out)));
+            }
+            (Some("scenario-translate"), _, _) => {
+                let _ = tx.send(orchestrator::Command::ApplyScenarioTranslation);
+            }
+            (Some("scenario-untranslate"), _, _) => {
+                let _ = tx.send(orchestrator::Command::RestoreScenarios);
+            }
             (Some("translate-verify"), Some(text), _) => {
                 let _ = tx.send(orchestrator::Command::VerifyTranslation(text.clone()));
             }

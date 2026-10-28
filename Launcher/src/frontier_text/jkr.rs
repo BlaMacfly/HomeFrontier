@@ -757,6 +757,19 @@ fn huffman_encode(data: &[u8]) -> Vec<u8> {
     output
 }
 
+/// HomeFrontier : compresse `data` en JKR type 3 (LZ seul), format des chunks de scénarios.
+pub fn compress_jkr_lz(data: &[u8], version: u16) -> Vec<u8> {
+    let lz_data = lz_encode(data);
+    let mut output = Vec::with_capacity(JKR_HEADER_SIZE + lz_data.len());
+    output.extend_from_slice(&JKR_MAGIC.to_le_bytes());
+    output.extend_from_slice(&version.to_le_bytes());
+    output.extend_from_slice(&TYPE_LZ.to_le_bytes());
+    output.extend_from_slice(&(JKR_HEADER_SIZE as u32).to_le_bytes());
+    output.extend_from_slice(&(data.len() as u32).to_le_bytes());
+    output.extend_from_slice(&lz_data);
+    output
+}
+
 /// Compress `data` using JKR HFI format (LZ77 + Huffman).
 pub fn compress_jkr_hfi(data: &[u8]) -> Vec<u8> {
     // LZ77 encode first.

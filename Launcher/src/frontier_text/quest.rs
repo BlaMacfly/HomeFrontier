@@ -225,13 +225,13 @@ pub fn inventory(quest_dir: &Path, backup_dir: &Path) -> Result<Inventory, Strin
 
 /// Écrit l'inventaire en TSV (texte d'origine, occurrences, champs, colonne de traduction vide), trié par
 /// nombre d'occurrences décroissant. Tabulations et retours à la ligne du texte sont échappés (\t, \n).
-pub fn write_inventory_tsv(inv: &Inventory, out: &Path) -> Result<(), String> {
+pub fn write_inventory_tsv(inv: &Inventory, out: &Path, field_names: &[&str]) -> Result<(), String> {
     let escape = |s: &str| s.replace('\\', "\\\\").replace('\t', "\\t").replace('\r', "\\r").replace('\n', "\\n");
     let mut rows: Vec<_> = inv.texts.iter().collect();
     rows.sort_by(|a, b| b.1.0.cmp(&a.1.0).then(a.0.cmp(b.0)));
     let mut text = String::from("source\toccurrences\tchamps\tfr\n");
     for (src, (count, fields)) in rows {
-        let names: Vec<&str> = (0..8).filter(|i| fields & (1 << i) != 0).map(|i| FIELD_NAMES[i]).collect();
+        let names: Vec<&str> = (0..field_names.len()).filter(|i| fields & (1 << i) != 0).map(|i| field_names[i]).collect();
         text.push_str(&format!("{}\t{count}\t{}\t\n", escape(src), names.join(",")));
     }
     if let Some(dir) = out.parent() {

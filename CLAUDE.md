@@ -70,6 +70,18 @@ UserData/, Logs/, et le launcher copié en `HomeFrontier.exe`).
   japonais), recoupage à 26 caractères, rapport
   `quetes-fr-auto-rapport.tsv`. L'inventaire lit les originaux sauvegardés (jamais les quêtes traduites).
   Le script empêche la veille de Windows pendant qu'il tourne (`SetThreadExecutionState`).
+- Scénarios du serveur (`frontier_text/scenario.rs`, `Server/bin/scenarios`, 145 376 fichiers) : conteneur
+  (2 tailles u32 BE, chunk0, chunk1, puis u32 + chunk2), format dans `Build/erupe-src/docs/scenario-format.md`.
+  Traduits : chunks à sous-en-tête (2 835 textes uniques, 1,2 million d'occurrences). Métadonnées recalculées
+  (vérifié sur tous les fichiers) : chunk0 (20 o) u16 n° 5 = longueur de la chaîne 0 ; chunk1 (44 o, toujours
+  10 chaînes) u16 n° 8 à 17 = départs des chaînes, n° 21 = taille des chaînes + constante ; taille totale u16 en +2.
+  Erupe, lui, recopie les métadonnées sans les recalculer (ne pas passer par ses .json pour traduire).
+  Non traduits : chunks JKR (type 3, 5 635 textes, 79 000 chunks) — chunk2 = enregistrements séquentiels
+  (en-tête 17 o + 2 chaînes, sans pointeurs, à confirmer), chunk1 JKR = bytecode de dialogue (sauts possibles :
+  rétro-ingénierie nécessaire). Commandes `--do scenario-inventory <tsv>`, `scenario-translate`,
+  `scenario-untranslate` ; originaux dans `UserData/Serveur-originaux/scenarios/` ; traductions
+  `Localization/scenarios-fr.tsv` (manuel) puis `scenarios-fr-auto.tsv` ; `Traduire.cmd -Textes scenarios`.
+  Codes : `@RETURN` (page), `~Cnn` (couleur, `~C00` fin), `@MYNAME`, `@MYCLEARNUM`, `@MYMONEY`, `@CHAHR`.
 - Fond d'écran : `Launcher/assets/fond.jpg` n'est **pas** versionné (logo Capcom, décision utilisateur du
   2026-10-28) ; `build.rs` l'intègre s'il est présent (`cfg(has_fond)`), sinon fond sombre. Après l'avoir
   remis en place, `touch` le fichier pour que cargo recompile.
